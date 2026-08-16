@@ -1,1 +1,1 @@
-print("omer is gay")
+print("skedadle")
