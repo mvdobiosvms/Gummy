@@ -15,3 +15,4 @@ if __name__ == '__main__':
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 print("Shira is funny")
+print_hi("hoohdxfrm")
