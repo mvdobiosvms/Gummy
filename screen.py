@@ -1,7 +1,11 @@
 import pygame
 import consts
 
-def backround():
+def background():
+    """
+    creating the green background for the game
+    :return:
+    """
     # pygame setup
     pygame.init()
     screen = pygame.display.set_mode((1280, 720))
@@ -16,7 +20,7 @@ def backround():
                 running = False
 
         # fill the screen with a color to wipe away anything from last frame
-        screen.fill(consts.BACKROUND)
+        screen.fill(consts.BACKGROUND)
 
         # RENDER YOUR GAME HERE
 
