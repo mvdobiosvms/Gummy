@@ -15,7 +15,7 @@ def get_body_indices(player_row, player_col):
         for c in range(player_col, player_col + consts.PLAYER_WIDTH):
             # הוספת קואורדינטת המשבצת (שורה, עמודה) אל קבוצת הגוף
             body.add((r, c))
-    # החזרת קבוצת משבצות הגוף המלאה לחניך א' לצורך בדיקת נגיעה בדגל
+    # החזרת קבוצת משבצות הגוף המלאה  לצורך בדיקת נגיעה בדגל
     return body
 
 def get_feet_indices(player_row, player_col):

@@ -1,9 +1,6 @@
-# game_field.py
-
 import random
-# ייבוא של כל הקבועים הרלוונטיים מקובץ ה-consts שלך
 from consts import ROWS, COLS, MINE_WIDTH, PLAYER_HEIGHT, PLAYER_WIDTH, FLAG_HEIGHT, FLAG_WIDTH, NUM_MINES
-import solider  # ייבוא קובץ החייל לשימוש בחישובי הגוף והרגליים שלו
+import solider
 
 
 def create_board():

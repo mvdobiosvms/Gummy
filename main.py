@@ -9,6 +9,7 @@ import game_field
 def main():
     screen = game_screen.create_game_window() #יוצרים מסך
     pygame.display.set_caption("The Flag - Final Project")  # הגדרת כותרת למשחק
+
     assets = game_screen.load_and_prepare_assets()  # התמונות ושינוי גודלן
 
     player_row = 0  # אינדקס שורת התחלה של השחקן במטריצה (שורה 0)
