@@ -1,24 +1,17 @@
 # game_field.py
 
 import random
-# ייבוא של כל הקבועים הרלוונטיים מקובץ ה-consts שלך
 from consts import ROWS, COLS, MINE_WIDTH, PLAYER_HEIGHT, PLAYER_WIDTH, FLAG_HEIGHT, FLAG_WIDTH, NUM_MINES
-import solider  # ייבוא קובץ החייל לשימוש בחישובי הגוף והרגליים שלו
+import solider
+#אימפורטים של מה שצריף
 
+def create_board(): #יצירת מטריצה מקפיצה
 
-def create_board():
-    """
-    חניכה א' - 1. יצירת מטריצה ללוח המשחק.
-    מייצר מערך דו-ממדי של 25 שורות ו-50 עמודות המלא ב-0 כברירת מחדל.
-    """
     return [[0 for _ in range(COLS)] for _ in range(ROWS)]
 
 
 def scatter_mines(flag_row, flag_col):
-    """
-    חניכה א' - 2. מתודה לפיזור רנדומלי למוקשים.
-    מגרילה 20 מוקשים בגודל 1x3 ומגנה על אזורי השחקן והדגל.
-    """
+
     mines_list = []  # יצירת רשימה ריקה שבה יישמרו קבוצות משבצות המוקשים
 
     # הגדרת אזור הגנה התחלתי של השחקן (0,0) כדי שלא יתפוצץ מיד בהתחלה
