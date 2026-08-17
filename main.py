@@ -103,3 +103,9 @@ def main():
 
 if __name__ == "__main__":
     main()  # הפעלת הפונקציה הראשית שמריצה את זרימת המשחק
+
+
+direction = ''
+print('Welcome to the flag game,have fun!')
+pygame.draw.rect(screen, RED, [500], [300])
+time.sleep(10)
