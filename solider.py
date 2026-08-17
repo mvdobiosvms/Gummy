@@ -15,12 +15,15 @@ def get_body_indices(player_row, player_col):
         for c in range(player_col, player_col + consts.PLAYER_WIDTH):
             # הוספת קואורדינטת המשבצת (שורה, עמודה) אל קבוצת הגוף
             body.add((r, c))
-    # החזרת קבוצת משבצות הגוף המלאה לחניך א' לצורך בדיקת נגיעה בדגל
+    # החזרת קבוצת משבצות הגוף המלאה  לצורך בדיקת נגיעה בדגל
     return body
 
 def get_feet_indices(player_row, player_col):
     """
-    פונקציה שמחשבת ומחזירה את קבוצת אינדקסי רגלי השחקן (2 משבצות תחתונות)
+    Calculates and returns the set of indices for the player's feet (the bottom two squares).
+    :param player_row:
+    :param player_col:
+    :return:
     """
     # חישוב השורה התחתונה ביותר שבה נמצאות הרגליים (השורה הראשונה שלו פלוס 3)
     feet_row = player_row + consts.PLAYER_HEIGHT - 1
