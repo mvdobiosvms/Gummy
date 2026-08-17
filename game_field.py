@@ -1,133 +1,68 @@
-# ייבוא ספריית pygame כדי לאפשר שימוש בפונקציות גרפיקה וציור
-import pygame
-# ייבוא ספריית random כדי לאפשר הגרלת מיקומים אקראיים למוקשים ושיחים
+# game_field.py
+
 import random
-# ייבוא קובץ הקבועים המשותף שנקרא consts.py
-import consts
-
-matrix = [["EMPTY" for _ in range(consts.COLS)] for _ in range(consts.ROWS)] #מטריצה דו מימדית 25x50 (ברירת מחדל EMPTY למשבצת)
-bush_cells = [] #רשימה כדי לשמור את מיקומי המשבצות של השיחים
-mines_origin = [] # רשימה כדי לשמור את נקודת ההתחלה של כל מוקש (שורה, עמודה)
-mine_cells = set() # יצירת set כדי לשמור על המשבצות שתפוסות על ידי מוקשים
-flag_cells = set() # יצירת set כדי לשמור על המשבצות שתפוסות על ידי הדגל
+# ייבוא של כל הקבועים הרלוונטיים מקובץ ה-consts שלך
+from consts import ROWS, COLS, MINE_WIDTH, PLAYER_HEIGHT, PLAYER_WIDTH, FLAG_HEIGHT, FLAG_WIDTH, NUM_MINES
+import solider  # ייבוא קובץ החייל לשימוש בחישובי הגוף והרגליים שלו
 
 
-# הגדרת הפונקציה לחישוב ורישום משבצות הדגל במטריצה הגלובלית
-def init_flag_indices():
-    global flag_cells, matrix # שימוש בדגל והמטריצה שהגדרנו מחוץ לפונקציה
-    flag_col = consts.COLS - consts.FLAG_WIDTH #(50-4=46) חישוב המיקום  של העמודה שבה מתחיל הדגל
-    flag_row = consts.ROWS - consts.FLAG_HEIGHT # חישוב מיקום השורה שבה מתחיל הדגל (25 -3 = 22)
-    for r in range(flag_row, flag_row + consts.FLAG_HEIGHT): #  לולאה כדי לרוץ על השורות שהדגל תופס 22-24
-        for c in range(flag_col, flag_col + consts.FLAG_WIDTH): # לולאה שרצה על העמודות שהדגל תופס 46-49
-            matrix[r][c] = "FLAG" #סימון המיקום כדגל
-            # הוספת זוג האינדקסים (שורה, עמודה) לקבוצת משבצות הדגל הגלובלית
-            flag_cells.add((r, c))
+def create_board():
+    """
+    חניכה א' - 1. יצירת מטריצה ללוח המשחק.
+    מייצר מערך דו-ממדי של 25 שורות ו-50 עמודות המלא ב-0 כברירת מחדל.
+    """
+    return [[0 for _ in range(COLS)] for _ in range(ROWS)]
 
 
-# הגדרת הפונקציה להגרלת מיקומי השיחים בשטח
-def generate_bushes():
-    # הצהרה על שימוש ברשימת השיחים ובמטריצה הגלובליות
-    global bush_cells, matrix
-    # לולאת while שממשיכה לרוץ עד שרשימת השיחים מכילה בדיוק 20 מיקומים
-    while len(bush_cells) < consts.NUM_BUSHES:
-        # הגרלת אינדקס שורה אקראי בין 0 ל-24
-        r = random.randint(0, consts.ROWS - 1)
-        # הגרלת אינדקס עמודה אקראי בין 0 ל-49
-        c = random.randint(0, consts.COLS - 1)
-        # תנאי המונע הצבת שיח על אזור פתיחת השחקן (0,0 בגודל 2x4) או על משבצת הדגל
-        if (r < consts.PLAYER_HEIGHT and c < consts.PLAYER_WIDTH) or matrix[r][c] == "FLAG":
-            # אם המיקום לא חוקי, דלג על השורות הבאות והמשך להגרלה הבאה בלולאה
-            continue
-        # בדיקה האם המשבצת שהוגרלה אכן פנויה לחלוטין (שווה ל-EMPTY)
-        if matrix[r][c] == "EMPTY":
-            # עדכון המטריצה במיקום זה וסימון המשבצת כ-BUSH
-            matrix[r][c] = "BUSH"
-            # הוספת המיקום (שורה, עמודה) אל רשימת השיחים הגלובלית
-            bush_cells.append((r, c))
+def scatter_mines(flag_row, flag_col):
+    """
+    חניכה א' - 2. מתודה לפיזור רנדומלי למוקשים.
+    מגרילה 20 מוקשים בגודל 1x3 ומגנה על אזורי השחקן והדגל.
+    """
+    mines_list = []  # יצירת רשימה ריקה שבה יישמרו קבוצות משבצות המוקשים
+
+    # הגדרת אזור הגנה התחלתי של השחקן (0,0) כדי שלא יתפוצץ מיד בהתחלה
+    player_start_zone = {(r, c) for r in range(PLAYER_HEIGHT) for c in range(PLAYER_WIDTH)}
+    # הגדרת אזור הגנה סביב הדגל בפינה הימנית התחתונה
+    flag_zone = {(r, c) for r in range(flag_row, ROWS) for c in range(flag_col, COLS)}
+
+    # לולאה הממשיכה לרוץ עד שיוצבו בהצלחה 20 מוקשים חוקיים בלוח
+    while len(mines_list) < NUM_MINES:
+        m_row = random.randint(0, ROWS - 1)  # הגרלת שורה רנדומלית במטריצה
+        m_col = random.randint(0, COLS - MINE_WIDTH)  # הגרלת עמודה רנדומלית תוך התחשבות ברוחב המוקש
+
+        # יצירת קבוצת 3 המשבצות האופקיות שהמוקש הנוכחי תופס
+        mine_cells = {(m_row, m_col + i) for i in range(MINE_WIDTH)}
+
+        # בדיקה אם המוקש החדש חופף בטעות לאזור השחקן או לאזור הדגל
+        if mine_cells.intersection(player_start_zone) or mine_cells.intersection(flag_zone):
+            continue  # אם יש חפיפה, נדלג ונבצע הגרלה מחודשת
+
+        mines_list.append(mine_cells)  # הוספת קבוצת משבצות המוקש החוקי לרשימה
+    return mines_list  # החזרת רשימת המוקשים המלאה
 
 
-# משימה 2: הגדרת הפונקציה לפיזור רנדומלי של 20 מוקשים (בגודל 1x3 משבצות)
-def generate_mines():
-    # הצהרה על שימוש ברשימות ובקבוצות המוקשים והמטריצה הגלובליות
-    global mines_origin, mine_cells, matrix
-    # לולאת while שממשיכה לרוץ עד שנוצרו בדיוק 20 מוקשים תקינים
-    while len(mines_origin) < consts.NUM_MINES:
-        # הגרלת שורה אקראית למוקש בין 0 ל-24
-        r = random.randint(0, consts.ROWS - 1)
-        # הגרלת עמודה אקראית פחות 3, כי מוקש מתפרס על 3 משבצות ימינה (בין 0 ל-47)
-        c = random.randint(0, consts.COLS - consts.MINE_WIDTH)
-
-        # הגדרת משתנה דגל (בוליאני) שמניח בתחילה שהשטח למוקש פנוי ותקין
-        is_area_safe = True
-        # יצירת קבוצה זמנית שתשמור את 3 המשבצות הרצופות שהמוקש הנוכחי יתפוס
-        new_mine_span = set()
-        # לולאה שבודקת את 3 המשבצות הרצופות של המוקש (מ-0 עד 2)
-        for i in range(consts.MINE_WIDTH):
-            # בדיקה האם המשבצת הנוכחית נמצאת על אזור השחקן או שהיא אינה פנויה (לא EMPTY)
-            if (r < consts.PLAYER_HEIGHT and (c + i) < consts.PLAYER_WIDTH) or matrix[r][c + i] != "EMPTY":
-                # אם השטח תפוס או לא חוקי, נשנה את משתנה הבדיקה ל-False
-                is_area_safe = False
-                # נעצור ונצא מיידית מלולאת ה-for (אין טעם להמשיך לבדוק את שאר המשבצות שלו)
-                break
-            # אם המשבצת פנויה וחוקית, נוסיף אותה לקבוצה הזמנית של המוקש הנוכחי
-            new_mine_span.add((r, c + i))
-
-        # אם לאחר הבדיקה השטח אכן נמצא פנוי ובטוח לחלוטין
-        if is_area_safe:
-            # לולאה שעוברת על כל 3 המשבצות שאושרו עבור המוקש החדש
-            for (mr, mc) in new_mine_span:
-                # עדכון המשבצת הספציפית במטריצה וסימונה כ-MINE
-                matrix[mr][mc] = "MINE"
-                # הוספת המשבצת הבודדת אל קבוצת המוקשים הגלובלית (לצורך זיהוי פגיעות)
-                mine_cells.add((mr, mc))
-            # הוספת נקודת ההתחלה של המוקש (הפינה השמאלית שלו) אל רשימת הציור הגלובלית
-            mines_origin.append((r, c))
+def check_mine_collision(player_row, player_col, mines_list):
+    """
+    חניכה א' - 4. בדיקת נגיעה במוקש.
+    בודק האם אינדקסי רגלי השחקן דורכים על אחת ממשבצות המוקשים.
+    """
+    player_feet = solider.get_feet_indices(player_row, player_col)  # קריאה לקבלת משבצות הרגליים של החייל
+    # מעבר על כל מוקש הקיים ברשימת המוקשים שהוגרלו
+    for mine in mines_list:
+        # בדיקה האם יש משבצת משותפת (חיתוך) בין רגלי השחקן למוקש הנוכחי
+        if player_feet.intersection(mine):
+            return True  # נמצאה התנגשות, החזרת ערך חיובי שמסמן הפסד
+    return False  # אין שום התנגשות, השחקן בטוח
 
 
-# משימה 3: מתודה שמקבלת את משבצות גוף השחקן ובודקת האם יש חיתוך (נגיעה) עם משבצות הדגל
-def check_flag_collision(soldier_body_cells):
-    # מחזיר True אם נמצאה לפחות משבצת אחת משותפת בין גוף השחקן לדגל, אחרת מחזיר False
-    return len(soldier_body_cells.intersection(flag_cells)) > 0
-
-
-# משימה 4: מתודה שמקבלת את משבצות רגלי השחקן ובודקת האם יש חיתוך (נגיעה) עם משבצות המוקשים
-def check_mine_collision(soldier_feet_cells):
-    # מחזיר True אם נמצאה לפחות משבצת אחת משותפת בין רגלי השחקן למוקשים, אחרת מחזיר False
-    return len(soldier_feet_cells.intersection(mine_cells)) > 0
-
-
-# פונקציה האחראית על ציור בסיסי של אלמנטי המגרש על המסך (לצורך בדיקת הלוגיקה שלך)
-def draw_field(screen, show_mines):
-    # אם משתנה show_mines הוא True (מצב דימוי שדה פעיל בלחיצה על Enter)
-    if show_mines:
-        # מילוי כל המסך בצבע שחור חלק
-        screen.fill(consts.BLACK)
-        # לולאה לציור קווי הרשת האופקיים של המטריצה
-        for r in range(consts.ROWS):
-            # ציור קו אפור אופקי לכל שורה מהקצה השמאלי לקצה הימני של החלון
-            pygame.draw.line(screen, consts.GRAY, (0, r * consts.CELL_SIZE), (consts.WIDTH, r * consts.CELL_SIZE))
-        # לולאה לציור קווי הרשת האנכיים של המטריצה
-        for c in range(consts.COLS):
-            # ציור קו אפור אנכי לכל עמודה מהקצה העליון לקצה התחתון של החלון
-            pygame.draw.line(screen, consts.GRAY, (c * consts.CELL_SIZE, 0), (c * consts.CELL_SIZE, consts.HEIGHT))
-        # לולאה שעוברת על נקודות ההתחלה של כל המוקשים כדי לצייר אותם
-        for (r, c) in mines_origin:
-            # ציור מלבן אדום בגודל 3 משבצות רוחב על משבצת אחת גובה עבור המוקש הגלוי
-            pygame.draw.rect(screen, consts.RED,
-                             (c * consts.CELL_SIZE, r * consts.CELL_SIZE, consts.MINE_WIDTH * consts.CELL_SIZE,
-                              consts.MINE_HEIGHT * consts.CELL_SIZE))
-    # אם show_mines הוא False (מצב משחק רגיל שבו המוקשים מוסתרים)
-    else:
-        # מילוי כל המסך בצבע ירוק חלק كפי שנדרש בהנחיות
-        screen.fill(consts.GREEN)
-        # לולאה שעוברת על כל מיקומי השיחים שהוגרלו
-        for (r, c) in bush_cells:
-            # ציור ריבוע בגוון ירוק כהה בגודל משבצת אחת (25x25) עבור כל שיח
-            pygame.draw.rect(screen, consts.DARK_GREEN,
-                             (c * consts.CELL_SIZE, r * consts.CELL_SIZE, consts.CELL_SIZE, consts.CELL_SIZE))
-
-    # ציור מלבן זמני בצבע זהב בפינה הימנית התחתונה שמייצג את מיקום הדגל
-    pygame.draw.rect(screen, (255, 215, 0), ((consts.COLS - consts.FLAG_WIDTH) * consts.CELL_SIZE,
-                                             (consts.ROWS - consts.FLAG_HEIGHT) * consts.CELL_SIZE,
-                                             consts.FLAG_WIDTH * consts.CELL_SIZE,
-                                             consts.FLAG_HEIGHT * consts.CELL_SIZE))
+def check_flag_collision(player_row, player_col, flag_row, flag_col):
+    """
+    חניכה א' - 3. בדיקת נגיעה בדגל.
+    בודק האם אינדקסי גוף השחקן נוגעים באחת ממשבצות הדגל.
+    """
+    player_body = solider.get_body_indices(player_row, player_col)  # קריאה לקבלת משבצות הגוף של החייל
+    # יצירת קבוצה המכילה את כל 12 המשבצות המרכיבות את שטח הדגל
+    flag_cells = {(r, c) for r in range(flag_row, ROWS) for c in range(flag_col, COLS)}
+    # החזרת ערך בוליאני המציין האם קיים חיתוך בין משבצות הגוף למשבצות הדגל
+    return bool(player_body.intersection(flag_cells))

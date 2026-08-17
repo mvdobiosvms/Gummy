@@ -1,126 +1,105 @@
+# main.py
+
 import pygame
 import sys
-import consts
-import game_field
-import solider
+import random
+# ייבוא של כל משתני המטריצה והקבועים מקובץ ה-consts המקורי שלך
+from consts import ROWS, COLS, PLAYER_HEIGHT, PLAYER_WIDTH, FLAG_HEIGHT, FLAG_WIDTH, NUM_BUSHES, RED, WHITE, CELL_SIZE
+import screen as game_screen  # מייבאים את מודול הגרפיקה והתצוגה של חניך ב'
+import game_field  # מייבאים את מודול הלוגיקה והמטריצה של חניך א'
 
 
 def main():
-    pygame.init()
-    screen = pygame.display.set_mode((consts.WIDTH, consts.HEIGHT)) # יצירת מסך המשחק
-    pygame.display.set_caption("The Flag") # כותרת
-    # יצירת אובייקט שעון (Clock) שיעזור לנו להגביל ולשלוט בקצב רענון המסך
-    clock = pygame.time.Clock() #
+    # חניכה ב' - 1. יצירת מסך pygame וטעינת הנכסים הגרפיים
+    screen = game_screen.create_game_window()
+    pygame.display.set_caption("The Flag - Final Project")  # הגדרת כותרת למשחק
+    assets = game_screen.load_and_prepare_assets()  # הכנת התמונות ושינוי גודלן
 
-    # קריאה לפונקציות האתחול של המגרש מקובץ game_field.py
-    game_field.init_flag_indices()
-    game_field.generate_bushes()
-    game_field.generate_mines()
+    # חניכה א' - 1. הגדרת משתנים למצב המשחק (אינדקסים של השחקן במטריצה)
+    player_row = 0  # אינדקס שורת התחלה של השחקן במטריצה (שורה 0)
+    player_col = 0  # אינדקס עמודת התחלה של השחקן במטריצה (עמודה 0)
 
-    # משימה 1: הגדרת משתנה בוליאני לקביעה האם המוקשים מוצגים כרגע על המסך (בהתחלה לא)
-    show_mines = False
-    # משימה 1: הגדרת משתנה שישמור את זמן תחילת חשיפת המוקשים במילישניות
-    mine_timer_start = 0
-    # משימה 1: הגדרת משתנה מחרוזת שעוקב אחר מצב המשחק (מצב התחלתי הוא PLAYING)
-    game_state = "PLAYING"
-    # משימה 1: הגדרת משתנה שישמור את זמן תחילת מסך הסיום במילישניות
-    state_timer_start = 0
+    # חישוב אינדקס הפינה השמאלית העליונה של הדגל במטריצה (שורה 22, עמודה 46)
+    flag_row = ROWS - FLAG_HEIGHT
+    flag_col = COLS - FLAG_WIDTH
 
-    # הגדרת משתנה בוליאני השולט בריצת לולאת המשחק המרכזית
-    running = True
-    # תחילת לולאת המשחק הראשית שתרוץ כל עוד המשתנה running שווה ל-True
-    while running:
-        # קבלת הזמן הנוכחי של המערכת במילישניות מאז שהתוכנית התחילה לרוץ
-        current_time = pygame.time.get_ticks()
+    # בניית המבנים הלוגיים
+    board = game_field.create_board()  # שלב 1: יצירת המטריצה הריקה בזיכרון
+    mines = game_field.scatter_mines(flag_row, flag_col)  # שלב 4: פיזור רנדומלי של 20 מוקשים
 
-        # בדיקה: אם המוקשים גלויים כרגע ועברה יותר משנייה אחת (1000 מילישניות) מאז הלחיצה
-        if show_mines and (current_time - mine_timer_start >= 1000):
-            # החזרת מצב show_mines ל-False כדי להסתיר שוב את המוקשים
-            show_mines = False
-        # בדיקה: אם המשחק הסתיים (ניצחון/הפסד) ועברו כבר 3 שניות (3000 מילישניות) מאז הסיום
-        if game_state != "PLAYING" and (current_time - state_timer_start >= 3000):
-            # שינוי המשתנה ל-False כדי לעצור את לולאת המשחק הראשי ולסגור את החלון
-            running = False
+    # הגרלת מיקומים אקראיים במטריצה עבור 20 השיחים (תמונת grass.png)
+    bushes_positions = []
+    for _ in range(NUM_BUSHES):
+        r = random.randint(0, ROWS - 1)
+        c = random.randint(0, COLS - 1)
+        bushes_positions.append((r, c))
 
-        # משימה 2: לולאת אירועים שעוברת על כל הפעולות שבוצעו על ידי המשתמש (events)
+    # משתני ניהול זמן ומצב עבור לחיצה על מקש Enter
+    show_grid = False  # משתנה המציין האם קווי הרשת והמוקשים גלויים כעת
+    mine_reveal_time = 0  # ישמור את זמן המחשב שבו נלחץ מקש ה-Enter
+    can_move = True  # משתנה הקובע האם לחייל מותר לנוע כרגע
+
+    clock = pygame.time.Clock()  # יצירת עצם שעון להגבלת קצב המשחק ל-60 פריימים
+
+
+    while True:
+        current_time = pygame.time.get_ticks()  #  הזמן הנוכחי במילישניות מהמחשב
+
+        if show_grid and (current_time - mine_reveal_time >= 1000): # מעלימים את המוקשים ומחזירים את התנועה אחרי שנייה
+            show_grid = False  # כיבוי הצגת המוקשים והרשת האפורה
+            can_move = True  # פתיחת חסימת התנועה עבור השחקן במקלדת
+
         for event in pygame.event.get():
-            # בדיקה האם המשתמש לחץ על כפתור ה-X (סגירת החלון) בפינת המסך
+            #  לחיצה על כפתור סגירת חלון המשחק (X)
             if event.type == pygame.QUIT:
-                # שינוי משתנה הלולאה ל-False כדי לסיים את התוכנית מיד
-                running = False
+                pygame.quit()
+                sys.exit()
 
-            # בדיקה האם המשתמש לחץ על מקש כלשהו במקלדת והמשחק עדיין פעיל
-            elif event.type == pygame.KEYDOWN and game_state == "PLAYING":
-                # בדיקה האם המקש שנלחץ הוא מקש ה-Enter (K_RETURN)
-                if event.key == pygame.K_RETURN and not show_mines:
-                    # שינוי הדגל ל-True כדי לחשוף את המוקשים על המסך
-                    show_mines = True
-                    # שמירת זמן המערכת הנוכחי כזמן תחילת החשיפה לצורך הטיימר
-                    mine_timer_start = current_time
+            # זיהוי לחיצות על מקשים במקלדת
+            elif event.type == pygame.KEYDOWN:
+                #  לחיצה על מקש Enter במקלדת
+                if event.key == pygame.K_RETURN and not show_grid:
+                    show_grid = True  # הפעלת מצב חשיפת מוקשים ורשת
+                    can_move = False  # חסימת תנועת השחקן (השחקן לא יכול לזוז)
+                    mine_reveal_time = current_time  # שמירת זמן תחילת החשיפה בשעון
 
-                # בדיקה: אם המשתמש לחץ על מקש אחר והמוקשים כרגע מוסתרים (כי כשהם גלויים התנועה חסומה)
-                elif not show_mines:
-                    # בדיקה האם נלחץ מקש חץ למעלה והשחקן לא נמצא בשורה העליונה ביותר (שורה 0)
-                    if event.key == pygame.K_UP and solider.player_row > 0:
-                        # הזזת אינדקס השורה של השחקן משבצת אחת למעלה בקובץ של חניך ב'
-                        solider.player_row -= 1
-                    # בדיקה האם נלחץ חץ למטה והשחקן לא חורג מהגבול התחתון (Rows פחות גובה השחקן שזה 4)
-                    elif event.key == pygame.K_DOWN and solider.player_row < consts.ROWS - consts.PLAYER_HEIGHT:
-                        # הזזת אינדקס השורה של השחקן משבצת אחת למטה בקובץ של חניך ב'
-                        solider.player_row += 1
-                    # בדיקה האם נלחץ חץ שמאלה והשחקן לא נמצא בעמודה השמאלית ביותר (עמודה 0)
-                    elif event.key == pygame.K_LEFT and solider.player_col > 0:
-                        # הזזת אינדקס העמודה של השחקן משבצת אחת שמאלה בקובץ של חניך ב'
-                        solider.player_col -= 1
-                    # בדיקה האם נלחץ חץ ימינה והשחקן לא חורג מהגבול הימני (Cols פחות רוחב השחקן שזה 2)
-                    elif event.key == pygame.K_RIGHT and solider.player_col < consts.COLS - consts.PLAYER_WIDTH:
-                        # הזזת אינדקס העמודה של השחקן משבצת אחת ימינה בקובץ של חניך ב'
-                        solider.player_col += 1
+                #  לחיצה על מקשי החצים במקלדת (רק אם can_move הוא True)
+                if can_move:
+                    # תנועה למעלה - מוודאים שהשחקן לא חורג מעבר לשורה 0 העליונה
+                    if event.key == pygame.K_UP and player_row > 0: #בדיקה אם השחקן לא חורג מגבולות המשחק (למעלה)
+                        player_row -= 1 #מורידים משורת אינדקס השחקן אחד
+                    elif event.key == pygame.K_DOWN and player_row + PLAYER_HEIGHT < ROWS: #בדיקה אם השחקן לא חורג מגבולות המשחק (למטה)
+                        player_row += 1 # מוסיפים לשורת האינדקשס של השחקן אחד
+                    elif event.key == pygame.K_LEFT and player_col > 0: # בדיקה אם השחקן לא חורג מגבולות המשחק (שמאלה)
+                        player_col -= 1 #מורידים אחד מעמודת אינדקס השחקן
+                    elif event.key == pygame.K_RIGHT and player_col + PLAYER_WIDTH < COLS: # בדיקה אם השחקן לא חורג מגבולות המשחק (ימינה) לוקחים בחשבון את הרוחב של השחקן
+                        player_col += 1 #מוסיפים אחד לעמודת אינדקס השחקן
 
-                    # משימה 4: קריאה לפונקציה שלך לבדיקת פגיעה במוקש על ידי שליחת פונקציית חישוב הרגליים של חניך ב'
-                    if game_field.check_mine_collision(solider.get_feet_indices()):
-                        # עדכון מצב המשחק ל-LOST (הפסד)
-                        game_state = "LOST"
-                        # שמירת זמן המערכת הנוכחי כדי להפעיל את טיימר 3 השניות לסגירה
-                        state_timer_start = current_time
+        #  בדיקת נגיעה במוקש
+        if game_field.check_mine_collision(player_row, player_col, mines):
+            screen.blit(assets['explosion'], (player_col * CELL_SIZE, player_row * CELL_SIZE)) #הוספה של הציור של הפיצוץ במיקום החייל
+            pygame.display.flip()
+            pygame.time.wait(500)  # השהיית המסך עם הפיצוץ לחצי שנייה
+            # מעבר למסך ההפסד הסופי המציג את הודעת ההפסד ותמונת הפציעה ל-3 שניות
+            game_screen.display_end_game_message(screen, "You Lost! Touched a Mine.", RED, True, assets)
+            break  # יציאה מהלולאה וסיום המשחק
 
-                    # משימה 3: קריאה לפונקציה שלך לבדיקת הגעה לדגל על ידי שליחת פונקציית חישוב הגוף של חניך ב'
-                    elif game_field.check_flag_collision(solider.get_body_indices()):
-                        # עדכון מצב המשחק ל-WON (ניצחון)
-                        game_state = "WON"
-                        # שמירת זמן המערכת הנוכחי כדי להפעיל את טיימר 3 השניות לסגירה
-                        state_timer_start = current_time
+        # 3. בדיקת נגיעה בדגל (בדיקת תנאי ניצחון)
+        if game_field.check_flag_collision(player_row, player_col, flag_row, flag_col):
+            # מעבר למסך הניצחון הסופי המציג את הודעת הניצחון ל-3 שניות
+            game_screen.display_end_game_message(screen, "You Win! Reached the Flag.", WHITE, False, assets)
+            break  # יציאה מהלולאה וסיום המשחק
 
-        # קריאה לפונקציית הציור של הלוח כדי לרענן את תצוגת הרקע, השיחים והמוקשים
-        game_field.draw_field(screen, show_mines)
-        # קריאה לפונקציית הציור של השחקן כדי להציג אותו במיקומו החדש על המסך
-        solider.draw_player(screen)
+        #  - 5. קריאה למתודת הציור הכללית לעדכון מחדש של כל האובייקטים על המסך
+        game_screen.draw_full_scene(screen, show_grid, player_row, player_col, flag_row, flag_col, bushes_positions,
+                                    mines, assets)
 
-        # בדיקה האם המשחק הסתיים כדי להציג הודעת טקסט מתאימה על המסך
-        if game_state != "PLAYING":
-            # הגדרת פונט וכתיבת טקסט בגודל 40 מודגש
-            font = pygame.font.SysFont("Arial", 40, bold=True)
-            # בחירת מחרוזת הטקסט להצגה - VICTORY אם ניצח, אחרת GAME OVER
-            msg = "VICTORY!" if game_state == "WON" else "GAME OVER!"
-            # קביעת צבע הטקסט - ירוק אם ניצח, אדום אם הפסיד
-            color = (0, 255, 0) if game_state == "WON" else consts.RED
-            # יצירת משטח גרפי המכיל את הטקסט הצבוע
-            text = font.render(msg, True, color)
-            # ציור הטקסט על המסך בדיוק במרכז החלון (WIDTH // 2, HEIGHT // 2)
-            screen.blit(text, text.get_rect(center=(consts.WIDTH // 2, consts.HEIGHT // 2)))
+        clock.tick(60)  # הגבלת מהירות ריצת הלולאה ל-60 פריימים בשנייה
 
-        # עדכון והצגת כל הציורים שבוצעו בפועל על גבי מסך המשתמש
-        pygame.display.flip()
-        # הגבלת מהירות ריצת הלולאה למקסימום של 60 פריימים בשנייה (FPS)
-        clock.tick(60)
-
-    # סגירה מבוקרת ונקייה של כל רכיבי ספריית pygame בסיום הלולאה
+    # שלב 6: סיום וסגירה מוחלטת של התוכנית
     pygame.quit()
-    # סגירה מוחלטת של תוכנית הפייתון ויציאה למערכת ההפעלה
     sys.exit()
 
 
-# תנאי בטיחות בפייתון המוודא שהפונקציה main תרוץ רק אם מפעילים את הקובץ הזה ישירות
 if __name__ == "__main__":
-    # הרצת פונקציית המשחק המרכזית
-    main()
+    main()  # הפעלת הפונקציה הראשית שמריצה את זרימת המשחק
