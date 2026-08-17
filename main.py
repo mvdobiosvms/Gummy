@@ -8,14 +8,15 @@ import game_field
 
 def main():
     screen = game_screen.create_game_window() #יוצרים מסך
-    pygame.display.set_caption("The Flag - Final Project")  # הגדרת כותרת למשחק
+    pygame.display.set_caption("The Flag")  # הגדרת כותרת למשחק
+
 
     assets = game_screen.load_and_prepare_assets()  # התמונות ושינוי גודלן
 
     player_row = 0  # אינדקס שורת התחלה של השחקן במטריצה (שורה 0)
     player_col = 0  # אינדקס עמודת התחלה של השחקן במטריצה (עמודה 0)
 
-    # חישוב אינדקס הפינה השמאלית העליונה של הדגל במטריצה (שורה 22, עמודה 46)
+    # חישוב אינדקס הפינה השמאלית העליונה של הדגל במטריצה (שורה 22 עמודה 46)
     flag_row = ROWS - FLAG_HEIGHT
     flag_col = COLS - FLAG_WIDTH
 
@@ -33,7 +34,8 @@ def main():
     mine_reveal_time = 0  # ישמור את זמן המחשב שבו נלחץ מקש ה Enter
     can_move = True  # משתנה הקובע האם לחייל מותר לזוז כרגע
 
-    #clock = pygame.time.Clock()  # יצירת עצם שעון להגבלת קצב המשחק ל-60 פריימים
+    #clock = pygame.time
+    # .Clock()  # יצירת עצם שעון להגבלת קצב המשחק ל-60 פריימים
 
 
     while True:
@@ -63,7 +65,7 @@ def main():
                     if event.key == pygame.K_UP and player_row > 0: #בדיקה אם השחקן לא חורג מגבולות המשחק (למעלה)
                         player_row -= 1 #מורידים משורת אינדקס השחקן אחד
                     elif event.key == pygame.K_DOWN and player_row + PLAYER_HEIGHT < ROWS: #בדיקה אם השחקן לא חורג מגבולות המשחק (למטה)
-                        player_row += 1 # מוסיפים לשורת האינדקשס של השחקן אחד
+                        player_row += 1 # מוסיפים לשורת האינדקס של השחקן אחד
                     elif event.key == pygame.K_LEFT and player_col > 0: # בדיקה אם השחקן לא חורג מגבולות המשחק (שמאלה)
                         player_col -= 1 #מורידים אחד מעמודת אינדקס השחקן
                     elif event.key == pygame.K_RIGHT and player_col + PLAYER_WIDTH < COLS: # בדיקה אם השחקן לא חורג מגבולות המשחק (ימינה) לוקחים בחשבון את הרוחב של השחקן
