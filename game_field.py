@@ -8,16 +8,20 @@ import solider  # ייבוא קובץ החייל לשימוש בחישובי ה�
 
 def create_board():
     """
-    חניכה א' - 1. יצירת מטריצה ללוח המשחק.
-    מייצר מערך דו-ממדי של 25 שורות ו-50 עמודות המלא ב-0 כברירת מחדל.
+    Creating a matrix for the game board.
+    Generates a 2D list with 25 rows and 50 columns filled with 0s by default.
+    :return:
     """
     return [[0 for _ in range(COLS)] for _ in range(ROWS)]
 
 
 def scatter_mines(flag_row, flag_col):
     """
-    חניכה א' - 2. מתודה לפיזור רנדומלי למוקשים.
-    מגרילה 20 מוקשים בגודל 1x3 ומגנה על אזורי השחקן והדגל.
+    A method for randomly distributing mines.
+    It randomly places twenty 1x3 mines while protecting the player and flag areas.
+    :param flag_row:
+    :param flag_col:
+    :return:
     """
     mines_list = []  # יצירת רשימה ריקה שבה יישמרו קבוצות משבצות המוקשים
 
@@ -44,8 +48,12 @@ def scatter_mines(flag_row, flag_col):
 
 def check_mine_collision(player_row, player_col, mines_list):
     """
-    חניכה א' - 4. בדיקת נגיעה במוקש.
-    בודק האם אינדקסי רגלי השחקן דורכים על אחת ממשבצות המוקשים.
+    Mine contact check.
+    Checks whether the player's feet are stepping on one of the mine tiles.
+    :param player_row:
+    :param player_col:
+    :param mines_list:
+    :return:
     """
     player_feet = solider.get_feet_indices(player_row, player_col)  # קריאה לקבלת משבצות הרגליים של החייל
     # מעבר על כל מוקש הקיים ברשימת המוקשים שהוגרלו
@@ -58,8 +66,13 @@ def check_mine_collision(player_row, player_col, mines_list):
 
 def check_flag_collision(player_row, player_col, flag_row, flag_col):
     """
-    חניכה א' - 3. בדיקת נגיעה בדגל.
-    בודק האם אינדקסי גוף השחקן נוגעים באחת ממשבצות הדגל.
+    Flag touch check.
+    Checks whether the player's body index touch any of the flag squares.
+    :param player_row:
+    :param player_col:
+    :param flag_row:
+    :param flag_col:
+    :return:
     """
     player_body = solider.get_body_indices(player_row, player_col)  # קריאה לקבלת משבצות הגוף של החייל
     # יצירת קבוצה המכילה את כל 12 המשבצות המרכיבות את שטח הדגל

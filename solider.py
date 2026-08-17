@@ -20,7 +20,10 @@ def get_body_indices(player_row, player_col):
 
 def get_feet_indices(player_row, player_col):
     """
-    פונקציה שמחשבת ומחזירה את קבוצת אינדקסי רגלי השחקן (2 משבצות תחתונות)
+    Calculates and returns the set of indices for the player's feet (the bottom two squares).
+    :param player_row:
+    :param player_col:
+    :return:
     """
     # חישוב השורה התחתונה ביותר שבה נמצאות הרגליים (השורה הראשונה שלו פלוס 3)
     feet_row = player_row + consts.PLAYER_HEIGHT - 1
