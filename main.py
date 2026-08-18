@@ -79,9 +79,7 @@ def main():
         #  בדיקת נגיעה בדגל
         if game_field.check_flag_collision(player_row, player_col, flag_row, flag_col):
             game_screen.display_end_game_message(screen, "You Win!", WHITE, False, assets) #עוברים למסך ניצחון מציגים הודעת ניצחון ל3 שניות
-            break  # יציאה מהלולאה וסיום המשחק
-
-        #   קריאה למתודת הציור הכללית לעדכון מחדש של כל האובייקטים על המסך
+            break
         game_screen.draw_full_scene(screen, show_grid, player_row, player_col, flag_row, flag_col, bushes_positions,
                                     mines, assets)
 

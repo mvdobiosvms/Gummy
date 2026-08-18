@@ -24,7 +24,7 @@ def scatter_mines(flag_row, flag_col):
     # הגדרת אזור הגנה סביב הדגל בפינה הימנית התחתונה
     flag_zone = {(r, c) for r in range(flag_row, ROWS) for c in range(flag_col, COLS)}
 
-    # דגש פיתוח: הגדרת אזור הגנה לנקודת ההתחלה של השומר (שורה 9, עמודה 0 במטריצה)
+    #  הגדרת אזור הגנה לנקודת ההתחלה של השומר (שורה 9, עמודה 0 במטריצה)
     # שומר על משבצת האתחול שלו נקייה ממוקשים
     guard_start_row = 240 // CELL_SIZE
     guard_start_zone = {(guard_start_row, 0)}
@@ -66,32 +66,3 @@ def check_flag_collision(player_row, player_col, flag_row, flag_col):
     player_body = solider.get_body_indices(player_row, player_col)
     flag_cells = {(r, c) for r in range(flag_row, ROWS) for c in range(flag_col, COLS)}
     return bool(player_body.intersection(flag_cells))
-
-
-# =====================================================================
-# פונקציות לוגיקה חדשות לחלק ג' (קישור למודולי הטלפורט והשומר)
-# =====================================================================
-
-def handle_teleport_logic(player_row, player_col, teleport_module):
-    """
-    משימה 7: מנהלת את זיהוי הדריכה על טלפורט ומחזירה מיקום שחקן חדש (משבצת מעל היעד).
-    """
-    player_feet = solider.get_feet_indices(player_row, player_col)
-    hit_hole = teleport_module.check_feet_teleport_collision(player_feet)
-
-    if hit_hole:
-        # הגרלת מיקום היעד המרוחק - משבצת אחת מעל לחור היעד
-        new_row, new_col = teleport_module.get_random_destination(hit_hole)
-        return new_row, new_col
-
-    return player_row, player_col
-
-
-def handle_guard_logic(player_row, player_col, guard_module):
-    """
-    משימה 8: מנהלת את זיהוי הפגיעה בשומר המסייר לפי חפיפת משבצות במטריצה.
-    """
-    player_body = solider.get_body_indices(player_row, player_col)
-    player_feet = solider.get_feet_indices(player_row, player_col)
-
-    return guard_module.check_collision(player_body, player_feet)

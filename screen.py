@@ -4,6 +4,7 @@ import sys
 from consts import *
 
 def create_game_window():
+
     """
     Creating a Pygame screen
     Initializes Pygame components and creates a display window of the desired size (WIDTH and HEIGHT).
