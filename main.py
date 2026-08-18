@@ -1,5 +1,4 @@
 import time
-
 import pygame
 import sys
 import random
@@ -11,7 +10,6 @@ import game_field
 def main():
     screen = game_screen.create_game_window() #יוצרים מסך
     pygame.display.set_caption("The Flag")  # הגדרת כותרת למשחק
-
 
     assets = game_screen.load_and_prepare_assets()  # התמונות ושינוי גודלן
 
@@ -36,16 +34,8 @@ def main():
     mine_reveal_time = 0  # ישמור את זמן המחשב שבו נלחץ מקש ה Enter
     can_move = True  # משתנה הקובע האם לחייל מותר לזוז כרגע
 
-    #clock = pygame.time
-    # .Clock()  # יצירת עצם שעון להגבלת קצב המשחק ל-60 פריימים
 
-    A = time.time()
-    b = True
     while True:
-        if time.time() - A > 0 and b:
-            b = False
-            print("Welcome to the flag race,have fun!")
-
         current_time = pygame.time.get_ticks()  #  הזמן הנוכחי במילישניות
 
         if show_grid and (current_time - mine_reveal_time >= 1000): # מעלימים את המוקשים ומחזירים את התנועה אחרי שנייה

@@ -1,13 +1,11 @@
 import time
-
 import pygame
 import sys
 from consts import *
 
-
 def create_game_window():
     """
-    Creating a Pygame screen.
+    Creating a Pygame screen
     Initializes Pygame components and creates a display window of the desired size (WIDTH and HEIGHT).
     :return:
     """
@@ -30,7 +28,7 @@ def load_and_prepare_assets():
             'soldier_night': pygame.transform.scale(pygame.image.load(solider_night_IMG).convert_alpha(),
                                                     (PLAYER_WIDTH * CELL_SIZE, PLAYER_HEIGHT * CELL_SIZE)),
 
-            # טעינת תמונת הדגל ושינוי גודלה ל-4 משבצות רוחב ו-3 משבצות גובה
+            # טעינת תמונת הדגל ושינוי הגודל שלה ל-4 משבצות רוחב ו-3 משבצות גובה
             'flag': pygame.transform.scale(pygame.image.load(flag_IMG).convert_alpha(),
                                            (FLAG_WIDTH * CELL_SIZE, FLAG_HEIGHT * CELL_SIZE)),
 
@@ -38,7 +36,7 @@ def load_and_prepare_assets():
             'mine': pygame.transform.scale(pygame.image.load("mine.png").convert_alpha(),
                                            (MINE_WIDTH * CELL_SIZE, CELL_SIZE)),
 
-            # טעינת תמונת הדשא (השיחים) בגודל משבצת אחת בודדת (1x1)
+            # טעינת תמונות הדשא (השיחים) בגודל משבצת אחת
             'bush': pygame.transform.scale(pygame.image.load(grass_IMG).convert_alpha(), (CELL_SIZE*3, CELL_SIZE*4)),
 
             # טעינת תמונות האפקטים לסיום (פיצוץ ופציעה) מהתיקייה שלכם
@@ -64,7 +62,7 @@ def draw_background_state(screen, show_grid):
     if show_grid:
         screen.fill(BLACK)  # מילוי הרקע בצבע שחור בדימוי שדה (מצב לילה)
     else:
-        screen.fill(BACKGROUND_COLOR)  # מילוי הרקע בצבע הירוק הראשי שקבעת
+        screen.fill(BACKGROUND_COLOR)  # מילוי הרקע בצבע הירוק הראשי
 
 
 def draw_matrix_lines(screen):
@@ -99,7 +97,7 @@ def draw_full_scene(screen, show_grid, player_row, player_col, flag_row, flag_co
     #  ציור צבע הרקע (ירוק ביום / שחור בלילה)
     draw_background_state(screen, show_grid)
 
-    #  אם המוקשים גלויים (מצב לילה - show_grid הוא True), נצייר את קווי הרשת ואת המוקשים בלבד
+    #  אם המוקשים גלויים (מצב לילה  show_grid הוא True) נצייר את קווי הרשת ואת המוקשים בלבד
     if show_grid:
         draw_matrix_lines(screen)  # ציור קווי הרשת האפורים
         for mine in mines:
@@ -107,10 +105,10 @@ def draw_full_scene(screen, show_grid, player_row, player_col, flag_row, flag_co
             leftmost_cell = min(mine, key=lambda cell: cell[1])
             mine_row = leftmost_cell[0]  # השורה של המוקש במטריצה (ציר Y)
             mine_col = leftmost_cell[1]  # העמודה של המוקש במטריצה (ציר X)
-            # ציור מדויק: קודם עמודה (X) ואז שורה (Y) מוכפלים ב-CELL_SIZE
+            #  קודם עמודה (X) ואז שורה (Y) מוכפלים ב-CELL_SIZE
             screen.blit(assets['mine'], (mine_col * CELL_SIZE, mine_row * CELL_SIZE))
 
-    #  מציירים את השיחים והדגל רק אם הרשת לא מוצגת (מצב יום - show_grid הוא False)
+    #  מציירים את השיחים והדגל רק אם הרשת לא מוצגת (מצב יום  show_grid הוא False)
     if not show_grid:
         # ציור רנדומלי של שיחים (תמונת grass.png)
         for pos in bushes:
@@ -118,14 +116,20 @@ def draw_full_scene(screen, show_grid, player_row, player_col, flag_row, flag_co
             bush_col = pos[1]  # העמודה של השיח במטריצה (ציר X)
             screen.blit(assets['bush'], (bush_col * CELL_SIZE, bush_row * CELL_SIZE))
 
-        # ציור תמונת הדגל בפינה הימנית התחתונה המדויקת של המסך (עמודה X קודם, שורה Y שני)
+        # ציור תמונת הדגל בפינה הימנית התחתונה המדויקת של המסך (עמודה X קודם שורה Y שני)
         screen.blit(assets['flag'], (flag_col * CELL_SIZE, flag_row * CELL_SIZE))
 
     #  דמות השחקן (החייל) מצוירת תמיד, ובדיוק לפי הסדר עמודה (X) ואז שורה (Y)
     chosen_soldier_sprite = assets['soldier_night'] if show_grid else assets['soldier_day']
     screen.blit(chosen_soldier_sprite, (player_col * CELL_SIZE, player_row * CELL_SIZE))
 
-    pygame.display.flip()  # עדכון ורענון התצוגה של החלון על המסך
+    #------------------------------------------------------------
+    game_font = pygame.font.SysFont(None, 25)
+    text_surface = game_font.render("Welcome to the flag game \n have fun!", True, WHITE)
+    screen.blit(text_surface, (10, 10))
+    # -------------------------------------------------------------
+
+    pygame.display.flip()  # עדכון ורענון התצוגה של החלון על המסך (קורה רק פעם אחת)
 
 
 def display_end_game_message(screen, message, color, is_loss, assets):

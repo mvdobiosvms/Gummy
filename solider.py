@@ -1,5 +1,3 @@
-# solider.py
-
 import pygame
 import consts
 
